@@ -1,0 +1,64 @@
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  --app-bg: #FDF4FF;
+  --app-text: #2D1932;
+
+  --primary: #C026D3;
+  --primary-hover: #A21CAF;
+  --accent: #F0ABFC;
+
+  --card-bg: #FFFFFF;
+  --card-border: #F0ABFC;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --app-bg: #2D1932;
+  --app-text: #FDF4FF;
+
+  --primary: #D946EF;
+  --primary-hover: #C026D3;
+  --accent: #F0ABFC;
+
+  --card-bg: #422747;
+  --card-border: #624568;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  @apply antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Global card styling */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #422747;
+  color: #FDF4FF;
+  border-color: #624568;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #C4A8CC;
+}
+
+/* Text selection */
+::selection {
+  background-color: #F0ABFC;
+  color: #2D1932;
+}
+
+/* Scrollbar */
+* {
+  scrollbar-color: #D946EF transparent;
+}
