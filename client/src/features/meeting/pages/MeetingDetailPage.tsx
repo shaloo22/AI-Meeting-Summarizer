@@ -13,7 +13,7 @@ function BackLink() {
   return (
     <Link
       to="/meetings"
-      className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-fuchsia-600 dark:text-slate-400 dark:hover:text-teal-400"
+      className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-violet-600 dark:text-slate-400 dark:hover:text-teal-400"
     >
       <ArrowLeft size={16} />
       Back to meetings

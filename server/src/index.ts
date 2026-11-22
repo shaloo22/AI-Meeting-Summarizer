@@ -1,28 +1,68 @@
 import 'dotenv/config'
 import express from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import { rateLimit } from 'express-rate-limit'
 import mongoose from 'mongoose'
-import { summarizeTranscript } from './summarize'
+import { summarizeTranscript, MAX_TRANSCRIPT_CHARS } from './summarize'
 import type { Language } from './summarize'
 import { connectDb } from './db'
 import { Meeting } from './models/Meeting'
 
 const app = express()
 
-// Allow only our React dev server to call this API
-app.use(cors({ origin: 'http://localhost:5173' }))
+// Behind a hosting proxy (Render, Railway), without this every user looks like one IP
+app.set('trust proxy', 1)
+
+app.use(helmet())
+
+// Comma separated list, so we can allow more than one frontend URL later
+const allowedOrigins = (process.env.CLIENT_ORIGIN ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+
+app.use(cors({ origin: allowedOrigins }))
 app.use(express.json({ limit: '1mb' }))
+
+// General limit for the whole API
+app.use(
+  '/api',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 200,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'Too many requests. Please try again in a few minutes.' },
+  }),
+)
+
+// Stricter limit for the AI route, because every call uses our free Groq quota
+const summarizeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.SUMMARY_LIMIT) || 8,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Summary limit reached. Please try again in 15 minutes.' },
+})
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
 })
 
-app.post('/api/summarize', async (req, res) => {
+app.post('/api/summarize', summarizeLimiter, async (req, res) => {
   const transcript: unknown = req.body?.transcript
   const language: Language = req.body?.language === 'hi' ? 'hi' : 'en'
 
   if (typeof transcript !== 'string' || transcript.trim().length < 20) {
     res.status(400).json({ error: 'Transcript is missing or too short.' })
+    return
+  }
+
+  if (transcript.length > MAX_TRANSCRIPT_CHARS) {
+    res.status(413).json({
+      error: 'Transcript is too long to summarize (limit is about 60,000 characters).',
+    })
     return
   }
 
@@ -117,6 +157,20 @@ app.delete('/api/meetings/:id', async (req, res) => {
     console.error(err)
     res.status(500).json({ error: 'Could not delete meeting.' })
   }
+})
+
+// Catches errors from middleware, for example a request with broken JSON
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  if ((err as { type?: string }).type === 'entity.parse.failed') {
+    res.status(400).json({ error: 'Request body is not valid JSON.' })
+    return
+  }
+  if ((err as { type?: string }).type === 'entity.too.large') {
+    res.status(413).json({ error: 'Request is too large.' })
+    return
+  }
+  console.error(err)
+  res.status(500).json({ error: 'Something went wrong.' })
 })
 
 const port = Number(process.env.PORT) || 5000

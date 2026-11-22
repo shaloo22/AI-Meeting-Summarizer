@@ -1,0 +1,7 @@
+import type { Language } from './types'
+
+export const SAMPLE_TRANSCRIPTS: Record<Language, string> = {
+  en: `Good morning everyone. Let's start the weekly product meeting. First, the mobile app. Rahul, the login bug is still happening on Android. Rahul said he will fix it and push the update by Wednesday. Next, the marketing campaign. Priya will finalize the poster designs and send them to the team by Thursday evening. Also, Priya will book the venue for the launch event. On the budget side, Amit mentioned that we are ten percent over for this quarter. Amit will prepare a cost report and share it with finance by Friday. We also discussed the customer feedback survey. Neha will send the survey link to all beta users tomorrow morning. One decision from today: we are moving the beta launch from December first to December eighth, so that we have enough time to test properly. Thanks everyone, see you next week.`,
+
+  hi: `सभी को नमस्कार। आज की मीटिंग शुरू करते हैं। राहुल शुक्रवार तक बजट रिपोर्ट भेजेगा। प्रिया अगले हफ्ते तक ऑफसाइट के लिए वेन्यू बुक करेगी। अमित ने बताया कि ऐप का लॉगिन बग अभी भी ठीक नहीं हुआ है। अमित सोमवार तक उसे ठीक करके अपडेट भेजेगा। नेहा कल सुबह सभी बीटा यूज़र्स को सर्वे का लिंक भेजेगी। हमने यह भी तय किया कि बीटा लॉन्च एक दिसंबर की जगह आठ दिसंबर को होगा। धन्यवाद, अगली मीटिंग में मिलते हैं।`,
+}

@@ -1,13 +1,13 @@
-
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, Loader2, Mic, Save, Sparkles, Square } from 'lucide-react'
+import { Check, FileText, Loader2, Mic, Save, Sparkles, Square } from 'lucide-react'
 import Button from '@/shared/components/Button'
 import Card from '@/shared/components/Card'
 import { useAudioRecorder } from '../hooks/useAudioRecorder'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import { useSummarize } from '../hooks/useSummarize'
 import { useSaveMeeting } from '../hooks/useMeetings'
+import { SAMPLE_TRANSCRIPTS } from '../sampleMeeting'
 import type { Language, RecordingStatus } from '../types'
 import SummaryCard from './SummaryCard'
 import TranscriptLines from './TranscriptLines'
@@ -21,10 +21,10 @@ const STATUS_LABEL: Record<RecordingStatus, string> = {
 }
 
 const STATUS_STYLE: Record<RecordingStatus, string> = {
-  idle: 'bg-violet-100 text-violet-700 dark:bg-violet-950/70 dark:text-violet-300',
-  requesting: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950/70 dark:text-fuchsia-300',
+  idle: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300',
+  requesting: 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300',
   recording: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-300',
-  stopped: 'bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300',
+  stopped: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300',
   error: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-300',
 }
 
@@ -44,6 +44,33 @@ function Alert({ message }: { message: string }) {
   )
 }
 
+function Notice({ message }: { message: string }) {
+  return (
+    <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+      {message}
+    </p>
+  )
+}
+
+// Shown only while a summary is loading. It is a separate component, so its timer
+// starts fresh every time loading starts and disappears when loading ends
+function SlowHint() {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(true), 8000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!show) return null
+
+  return (
+    <p className="mt-3 text-sm text-slate-500 dark:text-indigo-300">
+      This is taking longer than usual. The free server may be waking up, which can take up to a minute.
+    </p>
+  )
+}
+
 export default function RecorderPanel() {
   const [language, setLanguage] = useState<Language>('en')
 
@@ -56,18 +83,21 @@ export default function RecorderPanel() {
   const save = useSaveMeeting()
 
   const [title, setTitle] = useState('')
+  // When this is set, the app uses the sample transcript instead of the microphone
+  const [sampleText, setSampleText] = useState<string | null>(null)
 
   const isRecording = recorder.status === 'recording'
 
-  const transcriptText = useMemo(
+  const speechText = useMemo(
     () => speech.lines.map((line) => line.text).join(' '),
     [speech.lines],
   )
+  const transcriptText = sampleText ?? speechText
 
   const result = summarize.result
 
   const canSummarize =
-    recorder.status === 'stopped' &&
+    (sampleText !== null || recorder.status === 'stopped') &&
     transcriptText.length > 0 &&
     summarize.status !== 'loading'
 
@@ -75,6 +105,7 @@ export default function RecorderPanel() {
     summarize.reset()
     save.reset()
     setTitle('')
+    setSampleText(null)
     speech.reset()
     recorder.start()
     speech.start()
@@ -85,14 +116,14 @@ export default function RecorderPanel() {
     speech.stop()
   }
 
-  if (!speech.isSupported) {
-    return (
-      <Card title="Browser not supported">
-        <p className="text-slate-600 dark:text-violet-200">
-          Live transcript needs the Web Speech API. Please open this app in Google Chrome.
-        </p>
-      </Card>
-    )
+  const handleSample = () => {
+    const text = SAMPLE_TRANSCRIPTS[language]
+    summarize.reset()
+    save.reset()
+    setTitle('')
+    speech.reset()
+    setSampleText(text)
+    summarize.run(text, language)
   }
 
   return (
@@ -113,11 +144,17 @@ export default function RecorderPanel() {
           </span>
         }
       >
+        {!speech.isSupported && (
+          <div className="mb-4">
+            <Notice message="Live transcript works in Google Chrome. In this browser you can still try the sample meeting below." />
+          </div>
+        )}
+
         {/* Language Selector */}
         <div
           role="group"
           aria-label="Language"
-          className="flex items-center justify-center gap-1 rounded-xl border border-fuchsia-200 bg-fuchsia-50 p-1 dark:border-violet-800/50 dark:bg-[#171329]"
+          className="flex items-center justify-center gap-1 rounded-xl border border-violet-200 bg-slate-50 p-1 dark:border-indigo-800/50 dark:bg-[#171329]"
         >
           {LANGUAGES.map((l) => (
             <button
@@ -128,8 +165,8 @@ export default function RecorderPanel() {
               onClick={() => setLanguage(l.value)}
               className={`rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
                 language === l.value
-                  ? 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md shadow-fuchsia-900/20'
-                  : 'text-slate-600 hover:bg-fuchsia-100 hover:text-fuchsia-700 dark:text-violet-200 dark:hover:bg-violet-950/70 dark:hover:text-fuchsia-300'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-900/20'
+                  : 'text-slate-600 hover:bg-violet-100 hover:text-violet-700 dark:text-indigo-200 dark:hover:bg-indigo-950/70 dark:hover:text-violet-300'
               }`}
             >
               {l.label}
@@ -141,18 +178,18 @@ export default function RecorderPanel() {
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="relative">
             {isRecording && (
-              <span className="absolute inset-0 animate-ping rounded-full bg-fuchsia-500 opacity-30" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-red-400 opacity-40" />
             )}
 
             <button
               type="button"
               onClick={isRecording ? handleStop : handleStart}
-              disabled={recorder.status === 'requesting'}
+              disabled={recorder.status === 'requesting' || !speech.isSupported}
               aria-label={isRecording ? 'Stop recording' : 'Start recording'}
               className={`relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-xl transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 ${
                 isRecording
                   ? 'bg-gradient-to-br from-red-500 to-rose-700 shadow-red-900/30 hover:scale-105 focus-visible:outline-red-500'
-                  : 'bg-gradient-to-br from-fuchsia-500 to-violet-600 shadow-fuchsia-900/30 hover:scale-105 hover:shadow-fuchsia-500/30 focus-visible:outline-fuchsia-500'
+                  : 'bg-gradient-to-br from-violet-500 to-indigo-600 shadow-violet-900/30 hover:scale-105 hover:shadow-violet-500/30 focus-visible:outline-violet-500'
               }`}
             >
               {isRecording ? (
@@ -163,9 +200,20 @@ export default function RecorderPanel() {
             </button>
           </div>
 
-          <p className="text-sm font-medium text-slate-500 dark:text-violet-300">
+          <p className="text-sm font-medium text-slate-500 dark:text-indigo-300">
             {isRecording ? 'Tap to stop' : 'Tap to start recording'}
           </p>
+
+          {!isRecording && (
+            <Button
+              variant="secondary"
+              onClick={handleSample}
+              disabled={summarize.status === 'loading'}
+            >
+              <FileText size={16} />
+              Try sample meeting
+            </Button>
+          )}
         </div>
 
         {recorder.status === 'error' && (
@@ -199,24 +247,32 @@ export default function RecorderPanel() {
       >
         <div
           aria-live="polite"
-          className="max-h-64 min-h-24 space-y-2 overflow-y-auto rounded-xl border border-fuchsia-200 bg-fuchsia-50 p-4 dark:border-violet-800/50 dark:bg-[#171329]"
+          className="max-h-64 min-h-24 space-y-2 overflow-y-auto rounded-xl border border-violet-200 bg-slate-50 p-4 dark:border-indigo-800/50 dark:bg-[#171329]"
         >
-          {speech.lines.length === 0 && !speech.interim && (
-            <p className="text-sm text-slate-400 dark:text-violet-300/70">
+          {!sampleText && speech.lines.length === 0 && !speech.interim && (
+            <p className="text-sm text-slate-500 dark:text-indigo-300/70">
               Your words will appear here as you speak.
             </p>
           )}
 
-          <TranscriptLines lines={speech.lines} />
+          {sampleText ? (
+            <p className="leading-relaxed text-slate-800 dark:text-indigo-100">
+              {sampleText}
+            </p>
+          ) : (
+            <TranscriptLines lines={speech.lines} />
+          )}
 
           {speech.interim && (
-            <p className="italic text-fuchsia-600 dark:text-fuchsia-300">
+            <p className="italic text-violet-600 dark:text-violet-300">
               {speech.interim}
             </p>
           )}
         </div>
 
-        {recorder.audioUrl && (
+        {summarize.status === 'loading' && <SlowHint />}
+
+        {!sampleText && recorder.audioUrl && (
           <audio controls src={recorder.audioUrl} className="mt-4 w-full" />
         )}
       </Card>
@@ -241,7 +297,7 @@ export default function RecorderPanel() {
                 value={title}
                 maxLength={120}
                 onChange={(e) => setTitle(e.target.value)}
-                className="flex-1 rounded-xl border border-fuchsia-200 bg-white px-3 py-2.5 text-sm text-[#2D1932] outline-none placeholder:text-slate-400 transition-all focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-100 dark:border-violet-800 dark:bg-[#171329] dark:text-[#FDF4FF] dark:placeholder:text-violet-300/50 dark:focus:border-fuchsia-400 dark:focus:ring-fuchsia-900/40"
+                className="flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2.5 text-sm text-[#2D1932] outline-none placeholder:text-slate-500 transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:border-indigo-800 dark:bg-[#171329] dark:text-[#FDF4FF] dark:placeholder:text-indigo-300/50 dark:focus:border-violet-400 dark:focus:ring-violet-900/40"
               />
 
               <Button
@@ -278,11 +334,11 @@ export default function RecorderPanel() {
             )}
 
             {save.isSuccess && (
-              <p className="mt-3 text-sm text-violet-700 dark:text-violet-300">
+              <p className="mt-3 text-sm text-indigo-700 dark:text-indigo-300">
                 Saved successfully.{' '}
                 <Link
                   to="/meetings"
-                  className="font-semibold text-fuchsia-600 underline decoration-fuchsia-400 underline-offset-4 hover:text-violet-600 dark:text-fuchsia-300 dark:hover:text-violet-300"
+                  className="font-semibold text-violet-600 underline decoration-violet-400 underline-offset-4 hover:text-indigo-600 dark:text-violet-300 dark:hover:text-indigo-300"
                 >
                   View all meetings
                 </Link>

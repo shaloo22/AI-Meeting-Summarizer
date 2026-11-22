@@ -20,14 +20,14 @@ export default function Card({
     <section
       className={`
         rounded-2xl
-        border border-fuchsia-200/80
+        border border-violet-200/80
         bg-white
         p-5 sm:p-6
         text-[#2D1932]
         shadow-sm
         transition-all duration-300
 
-        dark:border-violet-800/50
+        dark:border-indigo-800/50
         dark:bg-[#171329]
         dark:text-[#FDF4FF]
         dark:shadow-lg
@@ -47,7 +47,7 @@ export default function Card({
             )}
 
             {description && (
-              <p className="mt-1.5 text-sm leading-relaxed text-[#78647D] dark:text-violet-200/80">
+              <p className="mt-1.5 text-sm leading-relaxed text-[#78647D] dark:text-indigo-200/80">
                 {description}
               </p>
             )}

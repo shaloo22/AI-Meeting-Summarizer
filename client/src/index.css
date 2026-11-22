@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -6,29 +5,29 @@
 :root {
   color-scheme: light;
 
-  --app-bg: #FDF4FF;
-  --app-text: #2D1932;
+  --app-bg: #F8FAFC;
+  --app-text: #1E1B4B;
 
-  --primary: #C026D3;
-  --primary-hover: #A21CAF;
-  --accent: #F0ABFC;
+  --primary: #7C3AED;
+  --primary-hover: #6D28D9;
+  --accent: #C4B5FD;
 
   --card-bg: #FFFFFF;
-  --card-border: #F0ABFC;
+  --card-border: #DDD6FE;
 }
 
 .dark {
   color-scheme: dark;
 
-  --app-bg: #2D1932;
+  --app-bg: #08091A;
   --app-text: #FDF4FF;
 
-  --primary: #D946EF;
-  --primary-hover: #C026D3;
-  --accent: #F0ABFC;
+  --primary: #8B5CF6;
+  --primary-hover: #7C3AED;
+  --accent: #C4B5FD;
 
-  --card-bg: #422747;
-  --card-border: #624568;
+  --card-bg: #171329;
+  --card-border: #3B3A6B;
 }
 
 body {
@@ -38,27 +37,27 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Global card styling */
+/* Dark mode form fields, matched to the card colour */
 .dark input,
 .dark textarea,
 .dark select {
-  background-color: #422747;
+  background-color: #10172B;
   color: #FDF4FF;
-  border-color: #624568;
+  border-color: #3B3A6B;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #C4A8CC;
+  color: #A5A3C9;
 }
 
 /* Text selection */
 ::selection {
-  background-color: #F0ABFC;
-  color: #2D1932;
+  background-color: #DDD6FE;
+  color: #1E1B4B;
 }
 
 /* Scrollbar */
 * {
-  scrollbar-color: #D946EF transparent;
+  scrollbar-color: #8B5CF6 transparent;
 }

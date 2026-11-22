@@ -63,7 +63,7 @@ export default function MeetingsPage() {
           action={
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-fuchsia-900/20 transition-all hover:from-fuchsia-500 hover:to-violet-500"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-900/20 transition-all hover:from-violet-500 hover:to-indigo-500"
             >
               <Mic size={16} />
               Record a meeting
@@ -88,30 +88,30 @@ export default function MeetingsPage() {
         </p>
       )}
 
-      <ul className="divide-y divide-fuchsia-100 dark:divide-violet-800/40">
+      <ul className="divide-y divide-violet-100 dark:divide-indigo-800/40">
         {data.map((meeting) => (
           <li key={meeting._id} className="flex items-center gap-2 py-3">
             <Link
               to={`/meetings/${meeting._id}`}
-              className="group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-fuchsia-50 dark:hover:bg-[#21172F]"
+              className="group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-violet-50 dark:hover:bg-[#21172F]"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-[#2D1932] dark:text-[#FDF4FF]">
                   {meeting.title}
                 </p>
 
-                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-[#78647D] dark:text-violet-200/80">
+                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-[#78647D] dark:text-indigo-200/80">
                   {meeting.summary || 'No summary'}
                 </p>
 
-                <p className="mt-2 text-xs text-[#A18BA8] dark:text-violet-300/60">
+                <p className="mt-2 text-xs text-[#A18BA8] dark:text-indigo-300/60">
                   {formatDateTime(meeting.createdAt)}
                 </p>
               </div>
 
               <ChevronRight
                 size={18}
-                className="shrink-0 text-violet-300 transition-colors group-hover:text-fuchsia-600 dark:text-violet-700 dark:group-hover:text-fuchsia-400"
+                className="shrink-0 text-indigo-300 transition-colors group-hover:text-violet-600 dark:text-indigo-700 dark:group-hover:text-violet-400"
               />
             </Link>
 
