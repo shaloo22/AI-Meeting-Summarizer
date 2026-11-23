@@ -33,6 +33,20 @@ const LANGUAGES: { value: Language; label: string; speechLang: string }[] = [
   { value: 'hi', label: 'हिन्दी', speechLang: 'hi-IN' },
 ]
 
+function speechErrorMessage(code: string): string {
+  switch (code) {
+    case 'network':
+      return 'Live transcript could not connect to the browser speech service. Brave and some other browsers block it. Please use Google Chrome, or try the sample meeting.'
+    case 'not-allowed':
+    case 'service-not-allowed':
+      return 'Microphone or speech access was blocked. Allow it in the address bar and try again.'
+    case 'audio-capture':
+      return 'No microphone was found. Check that a microphone is connected.'
+    default:
+      return `Speech recognition error: ${code}`
+  }
+}
+
 function Alert({ message }: { message: string }) {
   return (
     <p
@@ -220,9 +234,7 @@ export default function RecorderPanel() {
           <Alert message="Microphone access was denied or is unavailable." />
         )}
 
-        {speech.error && (
-          <Alert message={`Speech recognition error: ${speech.error}`} />
-        )}
+                {speech.error && <Alert message={speechErrorMessage(speech.error)} />}
       </Card>
 
       {/* Live Transcript */}
