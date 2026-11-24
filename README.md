@@ -33,7 +33,8 @@ A bilingual (English and Hindi) meeting assistant. Record a meeting, watch the t
 
 | Meetings list                                  | Hindi summary                               |
 | ---------------------------------------------- | ------------------------------------------- |
-| ![Meetings list](docs/screenshot-meetings.png) | ![Hindi summary](docs/screenshot-hindi.png) |
+| ![Meetings list](docs/screenshot-meetings.png) <img width="1127" height="963" alt="image" src="https://github.com/user-attachments/assets/aaf4312f-bbeb-42ee-bc5a-1087aab769d9" />
+| ![Hindi summary](docs/screenshot-hindi.png) | <img width="849" height="1220" alt="image" src="https://github.com/user-attachments/assets/4a82d67d-652c-4308-b40e-9cc0b8172694" />
 
 ## Tech stack
 
