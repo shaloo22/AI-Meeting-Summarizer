@@ -12,6 +12,12 @@ import type { Language, RecordingStatus } from '../types'
 import SummaryCard from './SummaryCard'
 import TranscriptLines from './TranscriptLines'
 
+// On phones the microphone is usually given to one consumer at a time.
+// Speech recognition is the one we need, so we skip the audio file there
+const IS_MOBILE =
+  typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+const RECORD_AUDIO = !IS_MOBILE
+
 const STATUS_LABEL: Record<RecordingStatus, string> = {
   idle: 'Ready',
   requesting: 'Waiting for mic...',
@@ -41,7 +47,7 @@ function speechErrorMessage(code: string): string {
     case 'service-not-allowed':
       return 'Microphone or speech access was blocked. Allow it in the address bar and try again.'
     case 'audio-capture':
-      return 'No microphone was found. Check that a microphone is connected.'
+      return 'No microphone was found, or another app is using it. Check the microphone and try again.'
     default:
       return `Speech recognition error: ${code}`
   }
@@ -99,8 +105,11 @@ export default function RecorderPanel() {
   const [title, setTitle] = useState('')
   // When this is set, the app uses the sample transcript instead of the microphone
   const [sampleText, setSampleText] = useState<string | null>(null)
+  // Status used on phones, where we do not run the audio recorder
+  const [mobileStatus, setMobileStatus] = useState<RecordingStatus>('idle')
 
-  const isRecording = recorder.status === 'recording'
+  const status: RecordingStatus = RECORD_AUDIO ? recorder.status : mobileStatus
+  const isRecording = status === 'recording'
 
   const speechText = useMemo(
     () => speech.lines.map((line) => line.text).join(' '),
@@ -111,7 +120,7 @@ export default function RecorderPanel() {
   const result = summarize.result
 
   const canSummarize =
-    (sampleText !== null || recorder.status === 'stopped') &&
+    (sampleText !== null || status === 'stopped') &&
     transcriptText.length > 0 &&
     summarize.status !== 'loading'
 
@@ -121,12 +130,20 @@ export default function RecorderPanel() {
     setTitle('')
     setSampleText(null)
     speech.reset()
-    recorder.start()
+    if (RECORD_AUDIO) {
+      recorder.start()
+    } else {
+      setMobileStatus('recording')
+    }
     speech.start()
   }
 
   const handleStop = () => {
-    recorder.stop()
+    if (RECORD_AUDIO) {
+      recorder.stop()
+    } else {
+      setMobileStatus('stopped')
+    }
     speech.stop()
   }
 
@@ -149,12 +166,12 @@ export default function RecorderPanel() {
         description="Press the button and start talking. The transcript appears live."
         action={
           <span
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[recorder.status]}`}
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[status]}`}
           >
             {isRecording && (
               <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
             )}
-            {STATUS_LABEL[recorder.status]}
+            {STATUS_LABEL[status]}
           </span>
         }
       >
@@ -198,7 +215,7 @@ export default function RecorderPanel() {
             <button
               type="button"
               onClick={isRecording ? handleStop : handleStart}
-              disabled={recorder.status === 'requesting' || !speech.isSupported}
+              disabled={status === 'requesting' || !speech.isSupported}
               aria-label={isRecording ? 'Stop recording' : 'Start recording'}
               className={`relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-xl transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 ${
                 isRecording
@@ -230,11 +247,11 @@ export default function RecorderPanel() {
           )}
         </div>
 
-        {recorder.status === 'error' && (
+        {RECORD_AUDIO && recorder.status === 'error' && (
           <Alert message="Microphone access was denied or is unavailable." />
         )}
 
-                {speech.error && <Alert message={speechErrorMessage(speech.error)} />}
+        {speech.error && <Alert message={speechErrorMessage(speech.error)} />}
       </Card>
 
       {/* Live Transcript */}
