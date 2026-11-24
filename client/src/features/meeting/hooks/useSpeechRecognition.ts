@@ -30,6 +30,26 @@ function getRecognitionCtor(): SpeechRecognitionCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
 }
 
+const normalize = (text: string) =>
+  text.toLowerCase().replace(/[.,!?।'"]/g, '').replace(/\s+/g, ' ').trim()
+
+// Android Chrome sends the same growing sentence many times and marks each one as final.
+// This decides if a new "final" text is just a longer version of the last line
+function isSameUtterance(previous: TranscriptLine, nextText: string, now: number): boolean {
+  const gap = now - previous.timestamp
+  const a = normalize(previous.text)
+  const b = normalize(nextText)
+  if (!a || !b) return false
+
+  const isPrefix = a.startsWith(b) || b.startsWith(a)
+  if (gap < 5000 && isPrefix) return true
+
+  // Chrome sometimes corrects an earlier word, so the prefix check fails.
+  // Updates of one sentence arrive within a fraction of a second
+  const sameStart = a.split(' ').slice(0, 2).join(' ') === b.split(' ').slice(0, 2).join(' ')
+  return gap < 1500 && sameStart
+}
+
 export function useSpeechRecognition(lang = 'en-IN') {
   const isSupported = getRecognitionCtor() !== null
   const [lines, setLines] = useState<TranscriptLine[]>([])
@@ -52,12 +72,24 @@ export function useSpeechRecognition(lang = 'en-IN') {
       let interimText = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i]
-        const text = result[0].transcript
+        const text = result[0].transcript.trim()
+
         if (result.isFinal) {
-          setLines((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), text: text.trim(), timestamp: Date.now() },
-          ])
+          if (!text) continue
+          const now = Date.now()
+
+          setLines((prev) => {
+            const last = prev[prev.length - 1]
+
+            if (last && isSameUtterance(last, text, now)) {
+              // Replace the last line with the newest version, never add a duplicate
+              const next = prev.slice(0, -1)
+              next.push({ ...last, text, timestamp: now })
+              return next
+            }
+
+            return [...prev, { id: crypto.randomUUID(), text, timestamp: now }]
+          })
         } else {
           interimText += text
         }
