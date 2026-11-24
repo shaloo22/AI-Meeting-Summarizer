@@ -19,11 +19,6 @@ interface SpeechRecognitionLike {
   onend: (() => void) | null
   start: () => void
   stop: () => void
-   onaudiostart: (() => void) | null
-  onspeechstart: (() => void) | null
-  onspeechend: (() => void) | null
-  onstart: (() => void) | null
-  onnomatch: (() => void) | null
 }
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike
 
@@ -52,26 +47,6 @@ export function useSpeechRecognition(lang = 'en-IN') {
     recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = lang
-
-    recognition.onaudiostart = () => {
-  console.log('Audio capture started')
-}
-
-recognition.onspeechstart = () => {
-  console.log('Speech detected')
-}
-
-recognition.onspeechend = () => {
-  console.log('Speech ended')
-}
-
-recognition.onstart = () => {
-  console.log('Speech recognition started')
-}
-
-recognition.onnomatch = () => {
-  console.log('No speech match found')
-}
 
     recognition.onresult = (event) => {
       let interimText = ''
