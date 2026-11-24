@@ -7,11 +7,19 @@ A bilingual (English and Hindi) meeting assistant. Record a meeting, watch the t
 > The backend runs on a free hosting plan that sleeps when idle. The first request after a quiet period can take up to a minute. Click **Try sample meeting** to see the full flow without a microphone.
 
 ![Record page](docs/screenshot-record.png)
+<img width="1228" height="1359" alt="image" src="https://github.com/user-attachments/assets/dac8789d-a980-4159-b1f5-4dd0a2a3b0b0" />
+
 
 ![Meeting page](docs/screenshot-meetings.png)
+<img width="1127" height="963" alt="image" src="https://github.com/user-attachments/assets/aaf4312f-bbeb-42ee-bc5a-1087aab769d9" />
+
 ![Meeting page](docs/screenshot-meetings.png-2)
+<img width="848" height="938" alt="image" src="https://github.com/user-attachments/assets/dd0f81f6-09bf-46d4-a21a-5adb81c37e70" />
+
 
 ![Hindi page](docs/screenshot-hindi.png)
+<img width="849" height="1220" alt="image" src="https://github.com/user-attachments/assets/4a82d67d-652c-4308-b40e-9cc0b8172694" />
+
 
 ## Features
 
