@@ -154,10 +154,9 @@ server/src/
 
 ## Limitations and next steps
 
-- **Live transcript depends on the browser.** It uses the Web Speech API, which works best in Google Chrome. Some browsers (for example Brave) block it. The audio for recognition is processed by the browser's speech service. Next step: server-side speech-to-text (Whisper) as a fallback that works in every browser.
+- **Live transcript depends on the browser.** It uses the Web Speech API (see Browser support above), and the audio for recognition is processed by the browser's speech service. In an unsupported browser, use "Try sample meeting". Next step: server-side speech-to-text (Whisper) as a fallback that works everywhere, which would also bring back the audio player on phones.
 - **Transcript quality.** Speech recognition can mishear words and names. Next step: let users edit the transcript before summarizing.
 - **No authentication yet.** All meetings are shared. Next step: JWT login with per-user meetings.
 - **Free hosting.** The backend sleeps when idle, so the first request can be slow. The AI provider's free tier also has rate limits, which the server handles with retry and a request limit.
 - **Rate limiter is in memory.** It does not share state across multiple servers. Next step: a Redis-backed limiter.
 - **Hindi summaries** are a little less polished than English ones.
-- **Mobile audio file.** On phones the app skips saving an audio file so the speech recognizer gets the microphone. The transcript and summary still work.
