@@ -12,11 +12,6 @@ import type { Language, RecordingStatus } from '../types'
 import SummaryCard from './SummaryCard'
 import TranscriptLines from './TranscriptLines'
 
-// On phones the microphone is usually given to one consumer at a time.
-// Speech recognition is the one we need, so we skip the audio file there
-// const IS_MOBILE =
-//   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-
 // "Desktop site" mode on a phone changes the user agent text, so we also check for a touch screen
 const IS_MOBILE =
   typeof window !== 'undefined' &&
